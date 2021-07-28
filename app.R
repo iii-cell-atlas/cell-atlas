@@ -400,10 +400,10 @@ server = function(input, output, session) {
     umap_p_split = reactive({
         withProgress(message = 'Plotting', detail = 'Please wait...', value = 0.8, {
             if(length(unique(umap_cluster_modified_ren_reo()[["seurat_clusters"]][["seurat_clusters"]])) == length(cluster.colours)){
-                DimPlot(umap_cluster_modified_ren_reo(),reduction = "umap", split.by = "group",  pt.size = 1, label = TRUE, label.size = 6)#, cols = cluster.colours)
+                DimPlot(umap_cluster_modified_ren_reo(),reduction = "umap", split.by = "sample",  pt.size = 1, label = TRUE, label.size = 6)#, cols = cluster.colours)
                 
             } else {
-                DimPlot(umap_cluster_modified_ren_reo(), reduction = "umap", split.by = "group", pt.size = 1, label = TRUE, label.size = 6)
+                DimPlot(umap_cluster_modified_ren_reo(), reduction = "umap", split.by = "sample", pt.size = 1, label = TRUE, label.size = 6)
             }
             
         })
@@ -412,11 +412,6 @@ server = function(input, output, session) {
     output$all_groups = renderPlot({
         
         umap_p_split()    
-    })
-    
-    output$all_groups1 = renderPlot({
-        
-        umap_p_split1()
     })
     
     output$dwnl_grps <- downloadHandler(
@@ -461,7 +456,7 @@ server = function(input, output, session) {
         if(length(unique(umap_cluster_modified_rna()[["seurat_clusters"]][["seurat_clusters"]])) == length(umap_names)){
             withProgress(message = 'Tabulating', {
                 setProgress(detail = 'Please wait...', value = 0.4)
-                marker_tb =     tcells_combined_clusters_tables_res[[(input$clusters_res + 0.49)]][[as.numeric(match(input$marker_genes_cluster,umap_names))]] %>% rownames_to_column(var = 'genes') %>% mutate_at(vars(matches("p_val|pval") ), ~formatC(., format = "e", digits = 2)) %>% dplyr::select(genes,contains(c("avg", "adj"))) %>% mutate_if(is.numeric, ~sprintf("%.3f", .))
+                marker_tb =     tcells_combined_clusters_tables_res[[(input$clusters_res + 0.49)]][[as.numeric(match(input$marker_genes_cluster,umap_names))]] %>% rownames_to_column(var = 'genes') %>% dplyr::left_join(x = ., y = uniprot_info, by = c("genes" = "Gene")) %>% dplyr::distinct(., genes, .keep_all = T) %>% mutate_at(vars(matches("p_val|pval") ), ~formatC(., format = "e", digits = 2)) %>% dplyr::select(genes,`Protein name`, PlasmoDB, contains(c("avg", "adj"))) %>% mutate_if(is.numeric, ~sprintf("%.3f", .))
                 setProgress(detail = 'Please wait...', value = 0.8)
                 return(marker_tb)
             })
@@ -469,7 +464,7 @@ server = function(input, output, session) {
             # ra_macrophage_combined_de_tables_full[[1]][[(as.numeric(input$select_cell_type) + 1)]]
             withProgress(message = 'Tabulating', {
                 setProgress(detail = 'Please wait...', value = 0.4)
-                marker_tb =     tcells_combined_clusters_tables_res[[(input$clusters_res + 0.49)]][[(as.numeric(input$marker_genes_cluster) + 1)]] %>% rownames_to_column(var = 'genes') %>% mutate_at(vars(matches("p_val|pval") ), ~formatC(., format = "e", digits = 2)) %>% dplyr::select(genes,contains(c("avg", "adj"))) %>% mutate_if(is.numeric, ~sprintf("%.3f", .))
+                marker_tb =     tcells_combined_clusters_tables_res[[(input$clusters_res + 0.49)]][[(as.numeric(input$marker_genes_cluster) + 1)]] %>% rownames_to_column(var = 'genes') %>% dplyr::left_join(x = ., y = uniprot_info, by = c("genes" = "Gene")) %>% dplyr::distinct(., genes, .keep_all = T)  %>% mutate_at(vars(matches("p_val|pval") ), ~formatC(., format = "e", digits = 2)) %>% dplyr::select(genes,`Protein name`, PlasmoDB, contains(c("avg", "adj"))) %>% mutate_if(is.numeric, ~sprintf("%.3f", .))
                 setProgress(detail = 'Please wait...', value = 0.8)
                 return(marker_tb)
             })            
@@ -487,6 +482,7 @@ server = function(input, output, session) {
         DT::datatable(
             cluster_markers(), 
             selection = "single",
+            escape = F,
             rownames = FALSE,
             filter = list(position = "top", plain = TRUE),
             style = "default",
