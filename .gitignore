@@ -1,0 +1,4 @@
+*.rds
+*.txt
+uniprot_info_with_link
+tcell_cd18KO_compact/
