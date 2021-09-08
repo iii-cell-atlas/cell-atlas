@@ -6,8 +6,8 @@ source("tcell_libs_raw_dash.R", local = TRUE)
 ##Creating the ui object for the user interface
 
 ui <- tagList(
-    dashboardPage(title = "Malaria Host Atlas",
-                  dashboardHeader(title = "Malaria Host Atlas",
+    dashboardPage(title = "Leishmania major",
+                  dashboardHeader(title = "Leishmania major",
                                   tags$li(class = "dropdown",
                                           tags$style(".main-header {max-height: 90px}"),
                                           tags$style(".main-header .logo {height: 90px}"),
